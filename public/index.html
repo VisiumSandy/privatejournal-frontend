@@ -2158,15 +2158,15 @@ function renderTradeModal(trade) {
               </div>
               ${isEdit && trade.screenshots?.length ? `
                 <div class="form-group full">
-  <label>📸 Screenshots</label>
-  ${isEdit && trade.screenshots?.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">${trade.screenshots.map(s=>`<img src="${s}" style="height:80px;border-radius:6px;border:1px solid var(--border);object-fit:cover;cursor:pointer" onclick="window.open('${s}')" />`).join('')}</div>` : ''}
-  <div id="screenshot-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"></div>
-  <input type="file" id="screenshot-input" accept="image/*" multiple style="display:none" onchange="uploadScreenshots(this)" />
-  <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('screenshot-input').click()" style="width:100%;justify-content:center;border-style:dashed">
-    📸 Ajouter des captures d'écran
-  </button>
-  <div id="upload-progress" style="font-size:11px;color:var(--text-3);margin-top:4px;text-align:center"></div>
-</div>
+                  <label>📸 Screenshots</label>
+                  ${isEdit && trade.screenshots?.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">${trade.screenshots.map(s=>`<img src="${s}" style="height:80px;border-radius:6px;border:1px solid var(--border);object-fit:cover;cursor:pointer" onclick="window.open('${s}')" />`).join('')}</div>` : ''}
+                  <div id="screenshot-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"></div>
+                  <input type="file" id="screenshot-input" accept="image/*" multiple style="display:none" onchange="uploadScreenshots(this)" />
+                  <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('screenshot-input').click()" style="width:100%;justify-content:center;border-style:dashed">
+                    📸 Ajouter des captures d'écran
+                  </button>
+                  <div id="upload-progress" style="font-size:11px;color:var(--text-3);margin-top:4px;text-align:center"></div>
+                </div>
               ` : ''}
             </div>
           </form>
