@@ -1079,6 +1079,7 @@ const ICONS = {
   mail:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
   lock:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
   empty:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+  camera:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
 };
 
 
@@ -1119,6 +1120,44 @@ let state = {
 // ═══════════════════════════════════════════════════════════
 function getToken() {
   return localStorage.getItem('pj_token');
+}
+
+let pendingScreenshots = [];
+
+async function uploadScreenshots(input) {
+  const files = Array.from(input.files);
+  const progress = document.getElementById('upload-progress');
+  const preview = document.getElementById('screenshot-preview');
+  if (!preview) return;
+  for (const file of files) {
+    if (progress) progress.textContent = `Upload en cours... ${file.name}`;
+    try {
+      const formData = new FormData();
+      formData.append('screenshot', file);
+      const token = getToken();
+      const r = await fetch(API + '/upload/screenshot', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error);
+      pendingScreenshots.push(data.url);
+      const img = document.createElement('div');
+      img.style.cssText = 'position:relative;display:inline-block';
+      img.innerHTML = `<img src="${data.url}" style="height:80px;border-radius:6px;border:1px solid var(--border);object-fit:cover;cursor:pointer" onclick="window.open('${data.url}')" /><button onclick="removeScreenshot('${data.url}',this.parentElement)" style="position:absolute;top:-6px;right:-6px;background:var(--red-2);border:none;border-radius:50%;width:18px;height:18px;color:#fff;cursor:pointer;font-size:10px;line-height:1">✕</button>`;
+      preview.appendChild(img);
+      if (progress) progress.textContent = `✅ ${file.name} uploadé !`;
+    } catch(e) {
+      if (progress) progress.textContent = `❌ Erreur: ${e.message}`;
+    }
+  }
+  setTimeout(() => { const p = document.getElementById('upload-progress'); if(p) p.textContent = ''; }, 3000);
+}
+
+function removeScreenshot(url, el) {
+  pendingScreenshots = pendingScreenshots.filter(s => s !== url);
+  el.remove();
 }
 
 async function api(path, opts={}) {
@@ -2119,11 +2158,15 @@ function renderTradeModal(trade) {
               </div>
               ${isEdit && trade.screenshots?.length ? `
                 <div class="form-group full">
-                  <label>Captures d'écran existantes</label>
-                  <div style="display:flex;gap:8px;flex-wrap:wrap">
-                    ${trade.screenshots.map(s=>`<img src="${s}" style="height:80px;border-radius:6px;border:1px solid var(--border);object-fit:cover" />`).join('')}
-                  </div>
-                </div>
+  <label>📸 Screenshots</label>
+  ${isEdit && trade.screenshots?.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">${trade.screenshots.map(s=>`<img src="${s}" style="height:80px;border-radius:6px;border:1px solid var(--border);object-fit:cover;cursor:pointer" onclick="window.open('${s}')" />`).join('')}</div>` : ''}
+  <div id="screenshot-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"></div>
+  <input type="file" id="screenshot-input" accept="image/*" multiple style="display:none" onchange="uploadScreenshots(this)" />
+  <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('screenshot-input').click()" style="width:100%;justify-content:center;border-style:dashed">
+    📸 Ajouter des captures d'écran
+  </button>
+  <div id="upload-progress" style="font-size:11px;color:var(--text-3);margin-top:4px;text-align:center"></div>
+</div>
               ` : ''}
             </div>
           </form>
@@ -2418,6 +2461,7 @@ function openAddTrade() {
   state.modalType = 'addTrade';
   state.modalOpen = true;
   state.editTrade = null;
+  pendingScreenshots = []; // ← ajoute
   render();
 }
 
@@ -2488,6 +2532,7 @@ async function submitTrade(evt, id) {
   });
   if (data.tags) data.tags = data.tags.split(',').map(t=>t.trim()).filter(Boolean);
   if (!data.accountId) delete data.accountId;
+  if (pendingScreenshots.length > 0) data.screenshots = pendingScreenshots;
 
   try {
     if (id) {
@@ -2497,6 +2542,7 @@ async function submitTrade(evt, id) {
       await api('/trades', { method: 'POST', body: JSON.stringify(data) });
       showToast('Trade enregistré ✅');
     }
+    pendingScreenshots = []; // ← ici une seule fois
     closeModal();
     await loadAll();
   } catch(e) { showToast(e.message, 'error'); }
