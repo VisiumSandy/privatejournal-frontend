@@ -1538,6 +1538,10 @@ function renderSidebar() {
     { id: 'accounts', icon: ICONS.accounts, label: 'Comptes', badge: state.accounts.length > 0 ? state.accounts.length : null },
     { id: 'goals', icon: ICONS.goals, label: 'Objectifs' },
     { id: 'badges', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>`, label: 'Badges' },
+    { id: 'calculator', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>`, label: 'Calculateur' },
+
+  
+
   ];
   const u = state.user;
   return `
@@ -1592,7 +1596,7 @@ function renderAccountSelector() {
 }
 
 function getPageTitle() {
-  const titles = { dashboard: 'Dashboard', journal: 'Journal', stats: 'Statistiques', accounts: 'Comptes', goals: 'Objectifs',badges: 'Badges & Récompenses' };
+  const titles = { dashboard: 'Dashboard', journal: 'Journal', stats: 'Statistiques', accounts: 'Comptes', goals: 'Objectifs',badges: 'Badges & Récompenses',calculator: 'Calculateur', };
   return titles[state.page] || 'PrivateJournal';
 }
 
@@ -1605,6 +1609,8 @@ function renderPage() {
     case 'goals': return renderGoals();
     default: return renderDashboard();
     case 'badges': return renderBadges();
+    case 'calculator': return renderCalculator();
+
   }
 }
 
@@ -2144,7 +2150,146 @@ function renderBadges() {
   `;
 }
 
+function renderCalculator() {
+  return `
+    <div style="max-width:600px;margin:0 auto">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-title">⚖️ Calculateur Position Size</div></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Capital du compte ($)</label>
+            <input type="number" id="calc-capital" placeholder="10000" value="${state.accounts[0]?.currentBalance || ''}" oninput="calcPosition()" />
+          </div>
+          <div class="form-group">
+            <label>Risque par trade (%)</label>
+            <input type="number" id="calc-risk" placeholder="1" step="0.1" value="${state.user?.settings?.riskPerTrade || 1}" oninput="calcPosition()" />
+          </div>
+          <div class="form-group">
+            <label>Prix d'entrée</label>
+            <input type="number" id="calc-entry" placeholder="1.08500" step="any" oninput="calcPosition()" />
+          </div>
+          <div class="form-group">
+            <label>Stop Loss</label>
+            <input type="number" id="calc-sl" placeholder="1.08000" step="any" oninput="calcPosition()" />
+          </div>
+          <div class="form-group">
+            <label>Take Profit (optionnel)</label>
+            <input type="number" id="calc-tp" placeholder="1.09500" step="any" oninput="calcPosition()" />
+          </div>
+          <div class="form-group">
+            <label>Type d'actif</label>
+            <select id="calc-type" onchange="calcPosition()">
+              <option value="forex">Forex (paires majeures)</option>
+              <option value="gold">Or (XAUUSD)</option>
+              <option value="indices">Indices / NAS / SPX</option>
+              <option value="crypto">Crypto</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
+      <!-- Résultats -->
+      <div class="card card-glow" id="calc-results" style="display:none">
+        <div class="card-header"><div class="card-title">📊 Résultats</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="padding:16px;background:var(--bg-2);border-radius:10px;text-align:center">
+            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Montant à risquer</div>
+            <div id="calc-risk-amount" style="font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--red-3)"></div>
+          </div>
+          <div style="padding:16px;background:var(--bg-2);border-radius:10px;text-align:center">
+            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Taille de position</div>
+            <div id="calc-size" style="font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--emerald)"></div>
+          </div>
+          <div style="padding:16px;background:var(--bg-2);border-radius:10px;text-align:center">
+            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Pips / Points SL</div>
+            <div id="calc-pips" style="font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--amber)"></div>
+          </div>
+          <div style="padding:16px;background:var(--bg-2);border-radius:10px;text-align:center" id="calc-rr-box">
+            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">R:R Ratio</div>
+            <div id="calc-rr" style="font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--blue)"></div>
+          </div>
+        </div>
+        <div id="calc-warning" style="margin-top:12px;padding:10px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;font-size:12px;color:var(--red-4);display:none">
+          ⚠️ Position trop grande — risque dépasse le seuil recommandé !
+        </div>
+      </div>
+
+      <!-- Guide pip value -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><div class="card-title">📖 Valeur du Pip / Point</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+          ${[
+            {asset:'Forex majeurs (1 lot)',val:'$10 / pip'},
+            {asset:'Or XAUUSD (1 lot)',val:'$1 / $0.01'},
+            {asset:'NAS100 (1 lot)',val:'$1 / point'},
+            {asset:'SPX500 (1 lot)',val:'$1 / point'},
+            {asset:'BTC (1 lot)',val:'Varie'},
+            {asset:'Mini lot (0.1)',val:'x0.1'},
+          ].map(r=>`
+            <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg-2);border-radius:6px">
+              <span style="color:var(--text-2)">${r.asset}</span>
+              <span style="font-family:var(--font-mono);color:var(--text-1);font-weight:600">${r.val}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function calcPosition() {
+  const capital = parseFloat(document.getElementById('calc-capital')?.value) || 0;
+  const riskPct = parseFloat(document.getElementById('calc-risk')?.value) || 1;
+  const entry = parseFloat(document.getElementById('calc-entry')?.value) || 0;
+  const sl = parseFloat(document.getElementById('calc-sl')?.value) || 0;
+  const tp = parseFloat(document.getElementById('calc-tp')?.value) || 0;
+  const type = document.getElementById('calc-type')?.value || 'forex';
+
+  const results = document.getElementById('calc-results');
+  if (!capital || !entry || !sl) { if(results) results.style.display='none'; return; }
+
+  const riskAmount = capital * riskPct / 100;
+  const slDistance = Math.abs(entry - sl);
+  if (!slDistance) { if(results) results.style.display='none'; return; }
+
+  let pipValue = 10;
+  let pips = 0;
+  let lotSize = 0;
+
+  if (type === 'forex') {
+    pips = slDistance * 10000;
+    pipValue = 10;
+    lotSize = riskAmount / (pips * pipValue / 100);
+  } else if (type === 'gold') {
+    pips = slDistance;
+    pipValue = 1;
+    lotSize = riskAmount / (slDistance * 100);
+  } else if (type === 'indices') {
+    pips = slDistance;
+    pipValue = 1;
+    lotSize = riskAmount / slDistance;
+  } else if (type === 'crypto') {
+    pips = slDistance;
+    lotSize = riskAmount / slDistance;
+  }
+
+  const rr = tp ? Math.abs(tp - entry) / slDistance : 0;
+
+  if(results) results.style.display='block';
+  const riskAmountEl = document.getElementById('calc-risk-amount');
+  const sizeEl = document.getElementById('calc-size');
+  const pipsEl = document.getElementById('calc-pips');
+  const rrEl = document.getElementById('calc-rr');
+  const warning = document.getElementById('calc-warning');
+  const rrBox = document.getElementById('calc-rr-box');
+
+  if(riskAmountEl) riskAmountEl.textContent = '$' + riskAmount.toFixed(2);
+  if(sizeEl) sizeEl.textContent = lotSize.toFixed(2) + ' lots';
+  if(pipsEl) pipsEl.textContent = pips.toFixed(1);
+  if(rrEl) rrEl.textContent = rr ? rr.toFixed(2) + 'R' : '—';
+  if(rrBox) rrBox.style.opacity = rr ? '1' : '0.4';
+  if(warning) warning.style.display = lotSize > 10 ? 'block' : 'none';
+}
 
 // ═══════════════════════════════════════════════════════════
 // CALENDAR HEATMAP
