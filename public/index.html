@@ -1145,7 +1145,15 @@ async function uploadScreenshots(input) {
       pendingScreenshots.push(data.url);
       const img = document.createElement('div');
       img.style.cssText = 'position:relative;display:inline-block';
-      img.innerHTML = `<img src="${data.url}" style="height:80px;border-radius:6px;border:1px solid var(--border);object-fit:cover;cursor:pointer" onclick="window.open('${data.url}')" /><button onclick="removeScreenshot('${data.url}',this.parentElement)" style="position:absolute;top:-6px;right:-6px;background:var(--red-2);border:none;border-radius:50%;width:18px;height:18px;color:#fff;cursor:pointer;font-size:10px;line-height:1">✕</button>`;
+      img.innerHTML = `
+        <img src="${data.url}" 
+          style="height:80px;width:120px;border-radius:6px;border:1px solid var(--border);object-fit:cover;cursor:zoom-in;transition:transform .2s" 
+          onmouseover="this.style.transform='scale(1.05)'" 
+          onmouseout="this.style.transform='scale(1)'"
+          onclick="openImagePreview('${data.url}')" />
+        <button onclick="removeScreenshot('${data.url}',this.parentElement)" 
+          style="position:absolute;top:-6px;right:-6px;background:var(--red-2);border:none;border-radius:50%;width:18px;height:18px;color:#fff;cursor:pointer;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center">✕</button>
+      `;
       preview.appendChild(img);
       if (progress) progress.textContent = `✅ ${file.name} uploadé !`;
     } catch(e) {
@@ -1158,6 +1166,24 @@ async function uploadScreenshots(input) {
 function removeScreenshot(url, el) {
   pendingScreenshots = pendingScreenshots.filter(s => s !== url);
   el.remove();
+}
+
+function openImagePreview(url) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:fadeIn .15s';
+  overlay.onclick = () => overlay.remove();
+  overlay.innerHTML = `
+    <div style="position:relative;max-width:90vw;max-height:90vh">
+      <img src="${url}" style="max-width:90vw;max-height:90vh;border-radius:10px;object-fit:contain;box-shadow:0 30px 60px rgba(0,0,0,.8)" />
+      <button onclick="this.parentElement.parentElement.remove()" 
+        style="position:absolute;top:-14px;right:-14px;background:var(--red-2);border:none;border-radius:50%;width:28px;height:28px;color:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.4)">✕</button>
+      <a href="${url}" download target="_blank"
+        style="position:absolute;bottom:-14px;right:-14px;background:var(--bg-3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text-2);font-size:11px;text-decoration:none;cursor:pointer">
+        ⬇ Télécharger
+      </a>
+    </div>
+  `;
+  document.body.appendChild(overlay);
 }
 
 async function api(path, opts={}) {
@@ -1722,6 +1748,7 @@ function renderTradeTable(trades, withActions) {
           <th>P&L</th>
           <th>R:R</th>
           <th>Statut</th>
+          <th>📸</th>
           ${withActions ? '<th>Actions</th>' : ''}
         </tr>
       </thead>
@@ -1733,11 +1760,23 @@ function renderTradeTable(trades, withActions) {
             <td><span class="badge badge-${t.type.toLowerCase()}">${t.type}</span></td>
             <td style="color:var(--text-2);max-width:120px;overflow:hidden;text-overflow:ellipsis">${t.setup || '—'}</td>
             <td style="font-family:var(--font-mono)">${t.entryPrice?.toFixed(5) || '—'}</td>
-            <td style="font-family:var(--font-mono);color:var(--red)">${t.stopLoss?.toFixed(5) || '—'}</td>
+            <td style="font-family:var(--font-mono);color:var(--red-3)">${t.stopLoss?.toFixed(5) || '—'}</td>
             <td style="font-family:var(--font-mono);color:var(--emerald)">${t.takeProfit?.toFixed(5) || '—'}</td>
             <td class="${t.pnl > 0 ? 'pnl-pos' : t.pnl < 0 ? 'pnl-neg' : 'pnl-neu'}">${t.pnl != null ? (t.pnl > 0 ? '+' : '') + '$' + t.pnl.toFixed(2) : '—'}</td>
             <td style="font-family:var(--font-mono)">${t.rr ? t.rr.toFixed(2)+'R' : '—'}</td>
             <td><span class="badge badge-${t.status?.toLowerCase()}">${t.status || 'OPEN'}</span></td>
+            <td onclick="event.stopPropagation()">
+              ${t.screenshots?.length ? `
+                <div style="display:flex;gap:4px;align-items:center">
+                  <img src="${t.screenshots[0]}" 
+                    style="height:36px;width:54px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;transition:transform .2s"
+                    onmouseover="this.style.transform='scale(1.08)'"
+                    onmouseout="this.style.transform='scale(1)'"
+                    onclick="openImagePreview('${t.screenshots[0]}')" />
+                  ${t.screenshots.length > 1 ? `<span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono)">+${t.screenshots.length - 1}</span>` : ''}
+                </div>
+              ` : '<span style="color:var(--text-3);font-size:11px">—</span>'}
+            </td>
             ${withActions ? `
               <td onclick="event.stopPropagation()">
                 <div style="display:flex;gap:6px">
