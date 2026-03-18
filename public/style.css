@@ -1042,3 +1042,45 @@ textarea { resize: vertical; min-height: 80px; }
   .form-grid { grid-template-columns: 1fr; }
   .topbar { padding: 0 14px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   LEADERBOARD — à ajouter à la fin de style.css
+   Compatible avec le design system existant (rouge/noir)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Bouton actif du tri (géré en JS, mais fallback CSS) */
+.lb-sort-btn.lb-active {
+  background: var(--bg-3) !important;
+  color: var(--text-1) !important;
+  border-color: var(--border-hover) !important;
+}
+
+/* Animation d'entrée des lignes du tableau */
+#lb-tbody tr {
+  animation: lb-row-in 0.3s ease both;
+}
+
+#lb-tbody tr:nth-child(1) { animation-delay: 0.02s; }
+#lb-tbody tr:nth-child(2) { animation-delay: 0.04s; }
+#lb-tbody tr:nth-child(3) { animation-delay: 0.06s; }
+#lb-tbody tr:nth-child(4) { animation-delay: 0.08s; }
+#lb-tbody tr:nth-child(5) { animation-delay: 0.10s; }
+#lb-tbody tr:nth-child(6) { animation-delay: 0.12s; }
+#lb-tbody tr:nth-child(7) { animation-delay: 0.14s; }
+
+@keyframes lb-row-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Responsive leaderboard */
+@media (max-width: 768px) {
+  #lb-table thead th:nth-child(6),
+  #lb-table tbody td:nth-child(6) { display: none; }
+}
+
+@media (max-width: 560px) {
+  #lb-table thead th:nth-child(5),
+  #lb-table tbody td:nth-child(5) { display: none; }
+}
+
