@@ -800,10 +800,10 @@ function renderPublicProfile() {
           {label:'PnL Total',value:(s.totalPnl>0?'+':'')+'$'+Math.abs(s.totalPnl).toLocaleString(),accent:s.totalPnl>=0?'var(--emerald)':'var(--red-3)'},
           {label:'Winrate',value:s.winrate.toFixed(1)+'%',accent:s.winrate>=50?'var(--emerald)':'var(--red-3)'},
           {label:'Trades',value:s.totalTrades,accent:'var(--text-2)'},
-          {label:'Profit Factor',value:s.profitFactor===Infinity?'∞':s.profitFactor.toFixed(2),accent:s.profitFactor>=1.5?'var(--emerald)':'var(--red-3)'},
-          {label:'R:R Moyen',value:s.avgRR.toFixed(2)+'R',accent:s.avgRR>=1.5?'var(--emerald)':'var(--amber)'},
-          {label:'Expectancy',value:(s.expectancy>0?'+':'')+'$'+s.expectancy.toFixed(2),accent:s.expectancy>0?'var(--emerald)':'var(--red-3)'},
-        ].map(c=>`<div class="stat-card" style="--accent:${c.accent}"><div class="stat-label">${c.label}</div><div class="stat-value" style="color:${c.accent}">${c.value}</div></div>`).join('')}
+          {label:'Profit Factor',value:(!s.profitFactor||s.profitFactor>=999)?'∞':s.profitFactor.toFixed(2),accent:(s.profitFactor>=1.5||!s.profitFactor)?'var(--emerald)':'var(--red-3)'},
+          {label:'R:R Moyen',value:s.avgRR?s.avgRR.toFixed(2)+'R':'—',accent:(s.avgRR||0)>=1.5?'var(--emerald)':'var(--amber)'},
+          {label:'Expectancy',value:s.expectancy?(s.expectancy>0?'+':'')+'$'+s.expectancy.toFixed(2):'—',accent:(s.expectancy||0)>0?'var(--emerald)':'var(--red-3)'},
+          ].map(c=>`<div class="stat-card" style="--accent:${c.accent}"><div class="stat-label">${c.label}</div><div class="stat-value" style="color:${c.accent}">${c.value}</div></div>`).join('')}
       </div>
       <div class="charts-grid" style="margin-bottom:24px">
         <div class="card card-glow"><div class="card-header"><div class="card-title">Equity Curve</div></div><div class="chart-wrap">${equityCurve?.length?`<canvas id="publicEquityChart"></canvas>`:`<div class="empty-state"><div class="empty-text">Pas de données</div></div>`}</div></div>
