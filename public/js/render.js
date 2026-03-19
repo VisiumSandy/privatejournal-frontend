@@ -25,52 +25,9 @@ const ICONS = {
 // ═══════════════════════════════════════════════════════════
 // RENDER ENGINE
 // ═══════════════════════════════════════════════════════════
-function render() {
-  const app = document.getElementById('app');
-  if (!state.user) { app.innerHTML = renderLoginPage(); return; }
-  app.innerHTML = `
-    <aside class="sidebar scrollbar-thin" id="sidebar">
-      ${renderSidebar()}
-    </aside>
-    <main class="main">
-      <div class="topbar">
-          <div class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></div>
-          <div class="topbar-left">
-            <div class="topbar-breadcrumb">
-              <span class="topbar-brand">PrivateJournal</span>
-              <span class="topbar-sep">/</span>
-              <span class="topbar-page">${getPageTitle()}</span>
-            </div>
-            <div class="topbar-subtitle">${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
-          </div>
-          <nav class="topbar-nav">
-            ${[
-              {id:'dashboard',   label:'Dashboard'},
-              {id:'journal',     label:'Journal'},
-              {id:'stats',       label:'Stats'},
-              {id:'leaderboard', label:'Classement'},
-              {id:'public',      label:'Journaux'},
-            ].map(n=>`<div class="topbar-nav-item ${state.page===n.id?'active':''}" onclick="setPage('${n.id}')">${n.label}</div>`).join('')}
-          </nav>
-          <div class="topbar-right">
-            ${renderAccountSelector()}
-            <button class="btn btn-primary btn-sm" onclick="openAddTrade()">${ICONS.plus} Trade</button>
-            <div class="topbar-avatar" onclick="openSettings()">
-              ${state.user?.avatar
-                ? `<img src="${state.user.avatar}" style="width:32px;height:32px;border-radius:50%;object-fit:cover" />`
-                : `<div class="topbar-avatar-placeholder">${state.user?.username?.charAt(0).toUpperCase()}</div>`}
-            </div>
-          </div>
-        </div>
-      <div class="page">
-        ${state.loading ? renderSkeleton() : renderPage()}
-      </div>
-    </main>
-    ${state.modalOpen ? renderModal() : ''}
-  `;
-  if (!state.loading) { renderAllCharts(); renderCalendarHeatmap(); }
-  attachListeners();
-}
+
+// render() est défini dans index.html
+
 
 function renderLoginPage() {
   const isLogin = state.authTab !== 'register';
