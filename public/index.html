@@ -345,14 +345,20 @@ async function loadPublicJournals() {
 }
 async function loadPublicProfile(username) {
   try {
-    const r = await fetch(API+'/public/'+username);
+    const r = await fetch(API + '/public/' + username);
     const data = await r.json();
-    if (data.error) { showToast(data.error,'error'); return; }
+    if (data.error) { showToast(data.error, 'error'); return; }
     state.publicProfile = data;
     state.page = 'publicProfile';
-    render();
-    setTimeout(()=>{ renderPublicEquityChart(data.equityCurve); renderPublicMonthlyChart(data.monthly); }, 80);
-  } catch(e) { showToast('Profil introuvable','error'); }
+  } catch(e) { 
+    showToast('Erreur réseau', 'error'); 
+    return; 
+  }
+  render();
+  setTimeout(() => {
+    renderPublicEquityChart(state.publicProfile.equityCurve);
+    renderPublicMonthlyChart(state.publicProfile.monthly);
+  }, 80);
 }
 
 // ═══════════════════════════════════════════════════════════
