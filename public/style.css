@@ -1084,3 +1084,20 @@ textarea { resize: vertical; min-height: 80px; }
   #lb-table tbody td:nth-child(5) { display: none; }
 }
 
+/* ─── Topbar amélioré ─────────────────────────────────── */
+.topbar { height:56px; background:rgba(8,8,8,.95); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 20px; gap:16px; position:sticky; top:0; z-index:50; }
+.topbar-left { display:flex; flex-direction:column; justify-content:center; min-width:160px; }
+.topbar-breadcrumb { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; }
+.topbar-brand { color:var(--red-3); font-family:var(--font-head); font-weight:700; }
+.topbar-sep { color:var(--text-3); font-size:11px; }
+.topbar-page { color:var(--text-1); font-family:var(--font-head); }
+.topbar-subtitle { font-size:10px; color:var(--text-3); margin-top:1px; }
+.topbar-nav { display:flex; align-items:center; gap:2px; flex:1; justify-content:center; }
+.topbar-nav-item { padding:5px 12px; border-radius:6px; font-size:12px; font-weight:500; color:var(--text-2); cursor:pointer; transition:all .15s; white-space:nowrap; border:1px solid transparent; }
+.topbar-nav-item:hover { background:var(--bg-2); color:var(--text-1); }
+.topbar-nav-item.active { background:rgba(229,57,53,.1); color:var(--red-4); border-color:rgba(229,57,53,.2); }
+.topbar-right { display:flex; align-items:center; gap:10px; }
+.topbar-avatar { cursor:pointer; transition:opacity .15s; }
+.topbar-avatar:hover { opacity:.8; }
+.topbar-avatar-placeholder { width:32px; height:32px; border-radius:50%; background:var(--red-2); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:#fff; border:1.5px solid var(--red-1); }
+@media(max-width:768px) { .topbar-nav { display:none; } .topbar-left { display:none; } }
