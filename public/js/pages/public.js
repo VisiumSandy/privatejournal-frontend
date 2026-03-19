@@ -131,7 +131,7 @@ function renderPublicProfile() {
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Date</th><th>Actif</th><th>Type</th><th>Setup</th><th>Entrée</th><th>P&L</th><th>R:R</th><th>Statut</th></tr></thead>
+            <thead><tr><th>Date</th><th>Actif</th><th>Type</th><th>Setup</th><th>Entrée</th><th>P&L</th><th>R:R</th><th>Statut</th><th>📸</th></tr></thead>
             <tbody>
               ${trades.map(t => `
                 <tr>
@@ -143,6 +143,14 @@ function renderPublicProfile() {
                   <td class="${t.pnl>0?'pnl-pos':t.pnl<0?'pnl-neg':'pnl-neu'}">${t.pnl!=null?(t.pnl>0?'+':'')+'$'+t.pnl.toFixed(2):'—'}</td>
                   <td style="font-family:var(--font-mono)">${t.rr?t.rr.toFixed(2)+'R':'—'}</td>
                   <td><span class="badge badge-${t.status?.toLowerCase()}">${t.status}</span></td>
+                  <td>
+                    ${t.screenshots?.length
+                      ? `<div style="display:flex;gap:4px;align-items:center">
+                           <img src="${t.screenshots[0]}" style="height:36px;width:54px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:zoom-in" onclick="openImagePreview('${t.screenshots[0]}')" />
+                           ${t.screenshots.length>1?`<span style="font-size:10px;color:var(--text-3)">+${t.screenshots.length-1}</span>`:''}
+                         </div>`
+                      : '<span style="color:var(--text-3)">—</span>'}
+                  </td>
                 </tr>
               `).join('')}
             </tbody>
