@@ -261,7 +261,7 @@ let state = {
   leaderboard:[], publicJournals:[], publicProfile:null,
   loading:true, modalOpen:false, modalType:null, editTrade:null, editAccount:null,
   filters:{search:'',asset:'',type:'',status:'',from:'',to:''},
-  page_num:1, totalTrades:0, selectedAccount:'all', charts:{}
+  page_num:1, totalTrades:0, selectedAccount:'all', charts:{}, propFirmSelected:0,
 };
 
 function getToken(){ return localStorage.getItem('pj_token'); }
@@ -547,6 +547,7 @@ function renderSidebar() {
     {id:'public', icon:ICONS.public, label:'Journaux'},
     {id:'badges', icon:ICONS.badges, label:'Badges'},
     {id:'calculator', icon:ICONS.calculator, label:'Calculateur'},
+    {id:'propfirm', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`, label:'Prop Firms'},
   ];
   const u = state.user;
   return `
@@ -573,7 +574,7 @@ function renderAccountSelector() {
 }
 
 function getPageTitle() {
-  const t = {dashboard:'Dashboard',journal:'Journal',stats:'Statistiques',accounts:'Comptes',goals:'Objectifs',leaderboard:'Classement',public:'Journaux Publics',publicProfile:'Profil Trader',badges:'Badges & Récompenses',calculator:'Calculateur'};
+  const t = {dashboard:'Dashboard',journal:'Journal',stats:'Statistiques',accounts:'Comptes',goals:'Objectifs',leaderboard:'Classement',public:'Journaux Publics',publicProfile:'Profil Trader',badges:'Badges & Récompenses',calculator:'Calculateur', propfirm:'Règles Prop Firms'};
   return t[state.page]||'PrivateJournal';
 }
 
@@ -589,6 +590,8 @@ function renderPage() {
     case 'publicProfile':return renderPublicProfile();
     case 'badges':       return renderBadges();
     case 'calculator':   return renderCalculator();
+    case 'propfirm': return renderPropFirmRules();
+
     default:             return renderDashboard();
   }
 }
@@ -1186,6 +1189,14 @@ function showToast(msg,type='success') {
 function toggleTheme(){const isLight=document.body.classList.toggle('light');localStorage.setItem('pj_theme',isLight?'light':'dark');render();}
 function initTheme(){if(localStorage.getItem('pj_theme')==='light')document.body.classList.add('light');}
 
+
+
+
+
+
+
+
+
 // ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
@@ -1197,5 +1208,7 @@ async function init() {
 }
 init();
 </script>
+<script src="js/pages/propfirm.js"></script>
+
 </body>
 </html>
